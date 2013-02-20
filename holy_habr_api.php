@@ -22,15 +22,34 @@ class HolyHabrAPI {
 
     }
 
-    protected function _get_inner_comments($data) {
+    protected function _get_inner_comments($data, $params) {
         $out = array();
         foreach ($data->children("div.comment_item")as $element) {
-            $item['text']=pq($element)->find("div.message:first")->text();
-            if (pq($element)->find("div.message")->count()>1)
-            {
-                $item['childs']=$this->_get_inner_comments(pq($element)->find("div.reply_comments:first"));
+
+            if (in_array("html", $params)) {
+                $item['html'] = pq($element)->find("div.message:first")->html();
+            }
+            if (in_array("text", $params)) {
+                $item['text'] = pq($element)->find("div.message:first")->text();
+            }
+            if (in_array("time", $params)) {
+                $item['time'] = pq($element)->find("time:first")->text();
+            }
+            if (in_array("score", $params)) {
+                $item['score'] = pq($element)->find("span.score:first")->text();
+                $item['score_text'] = pq($element)->find("span.score:first")->attr("title");
+            }
+            if (in_array("user_info", $params)) {
+                $item['user_info']['name']=pq($element)->find("a.username:first")->text();
+                $item['user_info']['avatar']=pq($element)->find("a.avatar img:first")->attr("src");
+
+            }
+
+            if (pq($element)->find("div.message")->count() > 1) {
+                $item['childs'] = $this->_get_inner_comments(pq($element)->find("div.reply_comments:first"), $params);
             };
-            $out[]=$item;
+
+            $out[] = $item;
         }
         return $out;
     }
@@ -41,13 +60,13 @@ class HolyHabrAPI {
      * @param type $id
      * @return array
      */
-    public function get_comments($id) {
+    public function get_comments($id, $params=array("text","html","time","user_info","score")) {
         $this->change_page("http://habrahabr.ru/post/{$id}/");
         $out = array();
 
         $items_src = $this->html->find("div.comments_list");
 
-        $out = $this->_get_inner_comments($items_src);
+        $out = $this->_get_inner_comments($items_src, $params);
 
         return $out;
     }
