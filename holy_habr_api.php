@@ -4,6 +4,7 @@ require('phpQuery-onefile.php');
 
 //@todo единообразные кавычки
 //@todo обработка ошибок?
+//@todo данные о пользователе
 
 /**
  * Отладочный вывод - print_r обернутый в pre.
@@ -15,18 +16,40 @@ function print_pr($data) {
 class HolyHabrAPI {
 
     protected $html;
+    protected $last_url = "";
 
     public function __construct() {
 
     }
 
+    protected function _get_inner_comments($data) {
+        $out = array();
+        foreach ($data->children("div.comment_item")as $element) {
+            $item['text']=pq($element)->find("div.message:first")->text();
+            if (pq($element)->find("div.message")->count()>1)
+            {
+                $item['childs']=$this->_get_inner_comments(pq($element)->find("div.reply_comments:first"));
+            };
+            $out[]=$item;
+        }
+        return $out;
+    }
+
     /**
-     * Получить список комментариев из статьи
+     * Получить список комментариев из статьи. Комментарии следующего уровня лежат в параметре childs.
+     *
      * @param type $id
      * @return array
      */
     public function get_comments($id) {
-        return false;
+        $this->change_page("http://habrahabr.ru/post/{$id}/");
+        $out = array();
+
+        $items_src = $this->html->find("div.comments_list");
+
+        $out = $this->_get_inner_comments($items_src);
+
+        return $out;
     }
 
     protected function _get_hubs($element) {
@@ -81,11 +104,22 @@ class HolyHabrAPI {
     }
 
     /**
-     * Выбрать страницу для обработки.
+     * Выбрать страницу для обработки. Если страница уже выбрана та же - повторно загружаться не будет.
+     *
      * @param type $url ссылка на страницу
      */
     public function change_page($url) {
-        $data = file_get_contents($url);
+        if ($this->last_url != $url) {
+            $this->last_url = $url;
+            $this->reload();
+        }
+    }
+
+    /**
+     * Перезагружает текущую страницу.
+     */
+    public function reload() {
+        $data = file_get_contents($this->last_url);
         $this->html = phpQuery::newDocumentHTML($data, "utf-8");
         $this->html->find("div.buttons")->remove();
     }
@@ -102,7 +136,6 @@ class HolyHabrAPI {
             if (in_array("title", $params))
                 $item['title'] = trim(pq($element)->find("h1.title")->find("a")->text());
 
-            //$item['url'] = trim(pq($element)->find("h1.title")->find("a")->attr("href"));
             $id_src = explode("post_", pq($element)->attr("id"));
             $item['id'] = $id_src[1];
 
