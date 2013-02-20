@@ -5,6 +5,7 @@ require('phpQuery-onefile.php');
 //@todo единообразные кавычки
 //@todo обработка ошибок?
 //@todo данные о пользователе
+//@todo оптимизировать - убрать дубли запросов.
 
 /**
  * Отладочный вывод - print_r обернутый в pre.
@@ -100,7 +101,7 @@ class HolyHabrAPI {
      * @param array $params какие параметры получить ('caption', 'hubs', 'tags', 'content')
      * @return array
      */
-    public function get_article($id, $params = array('caption', 'hubs', 'tags', 'content')) {
+    public function get_article($id, $params = array('caption', 'hubs', 'tags', 'content','score')) {
         $this->change_page("http://habrahabr.ru/post/{$id}/");
         $out = array();
         $post = $this->html->find("div.post");
@@ -115,6 +116,12 @@ class HolyHabrAPI {
 
         if (in_array("tags", $params)) {
             $out['tags'] = $this->_get_tags($item);
+        }
+        if (in_array("score", $params)) {
+            $out['score'] = pq($post->find("div.infopanel span.score"))->text();
+            $out['score_text'] = pq($post->find("div.infopanel span.score"))->attr("title");
+            $out['favs_count'] = pq($post->find("div.infopanel div.favs_count"))->text();
+
         }
         if (in_array("content", $params)) {
             $out['content'] = pq($post->find("div.content"))->html();
