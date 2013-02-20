@@ -151,6 +151,21 @@ class HolyHabrAPI {
         $this->html->find("div.buttons")->remove();
     }
 
+    public function get_user($uid){
+        $this->change_page("http://habrahabr.ru/users/{$uid}/");
+        $out=Array("uid"=>$uid);
+
+        $out['name']=trim(pq($this->html->find("div.fullname"))->text());
+        $out['karma']=trim(pq($this->html->find("div.karma div.score div.num"))->text());
+        $out['karma_text']=trim(pq($this->html->find("div.karma div.votes"))->text());
+        $out['rating']=trim(pq($this->html->find("div.rating div.num"))->text());
+        $out['birthday']=trim(pq($this->html->find("dd.bday"))->text());
+        $out['summary']=trim(pq($this->html->find("dd.summary"))->html());
+        $out['reg_date']=trim(pq($this->html->find("dd.grey"))->html());
+
+        return $out;
+    }
+
     /**
      * Получить список статей со страницы, плюс ссылку на следующую.
      *
