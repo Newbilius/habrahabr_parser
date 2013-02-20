@@ -22,6 +22,28 @@ class HolyHabrAPI {
 
     }
 
+    /**
+     * Подготоваливает статью для скачивания и локального сохрания.
+     * 
+     * @param string $text текст статьи
+     * @param string $img_name префикс и путь для файлов картинок.
+     * @return array массив с двумя ключами:<br><b>text</b> - туда кладется текст с замененными ссылками на картинки
+     * <br><b>files</b> - массив картинок
+     */
+    public static function prepare_content_for_download($text,$img_name="tmp_"){
+        preg_match_all('/\<(.*)img(.*)src(.*)=(.*)\>/isU', $text, $result);
+        foreach ($result[4] as $cnt=>$_img){
+            $f_name=str_replace(Array("'",'"'), "", $_img);
+            $ext=end(explode(".",$f_name));
+            $new_name=$img_name.$cnt.".".$ext;
+            $img_array[$new_name]=  $f_name;
+            $text=  str_replace($f_name, $new_name, $text);
+        }
+        $full_result['files']=$img_array;
+        $full_result['text']=$text;
+        return $full_result;
+    }
+    
     protected function _get_inner_comments($data, $params) {
         $out = array();
         foreach ($data->children("div.comment_item")as $element) {
