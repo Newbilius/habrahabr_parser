@@ -41,9 +41,8 @@ class HolyHabrAPI {
                 $item['score_text'] = pq($element)->find("span.score:first")->attr("title");
             }
             if (in_array("user_info", $params)) {
-                $item['user_info']['name']=pq($element)->find("a.username:first")->text();
-                $item['user_info']['avatar']=pq($element)->find("a.avatar img:first")->attr("src");
-
+                $item['user_info']['name'] = pq($element)->find("a.username:first")->text();
+                $item['user_info']['avatar'] = pq($element)->find("a.avatar img:first")->attr("src");
             }
 
             if (pq($element)->find("div.message")->count() > 1) {
@@ -61,7 +60,7 @@ class HolyHabrAPI {
      * @param type $id
      * @return array
      */
-    public function get_comments($id, $params=array("text","html","time","user_info","score")) {
+    public function get_comments($id, $params = array("text", "html", "time", "user_info", "score")) {
         $this->change_page("http://habrahabr.ru/post/{$id}/");
         $out = array();
 
@@ -101,7 +100,7 @@ class HolyHabrAPI {
      * @param array $params какие параметры получить ('caption', 'hubs', 'tags', 'content')
      * @return array
      */
-    public function get_article($id, $params = array('caption', 'hubs', 'tags', 'content','score')) {
+    public function get_article($id, $params = array('caption', 'hubs', 'tags', 'content', 'score', "author")) {
         $this->change_page("http://habrahabr.ru/post/{$id}/");
         $out = array();
         $post = $this->html->find("div.post");
@@ -121,7 +120,9 @@ class HolyHabrAPI {
             $out['score'] = pq($post->find("div.infopanel span.score"))->text();
             $out['score_text'] = pq($post->find("div.infopanel span.score"))->attr("title");
             $out['favs_count'] = pq($post->find("div.infopanel div.favs_count"))->text();
-
+        }
+        if (in_array("author", $params)) {
+            $out['author'] = pq($post)->find("div.infopanel div.author a:first")->text();
         }
         if (in_array("content", $params)) {
             $out['content'] = pq($post->find("div.content"))->html();
@@ -156,7 +157,7 @@ class HolyHabrAPI {
      * @param array $params какие параметры получить ("title", "flag", "content", "hubs", "tags", "next_url")
      * @return array
      */
-    function get_article_list($params = array("title", "flag", "content", "hubs", "tags", "next_url")) {
+    function get_article_list($params = array("title", "flag", "content", "hubs", "tags", "next_url", "author", "score")) {
         $list = array();
         foreach ($this->html->find("div.post") as $element) {
             if (in_array("title", $params))
@@ -164,19 +165,25 @@ class HolyHabrAPI {
 
             $id_src = explode("post_", pq($element)->attr("id"));
             $item['id'] = $id_src[1];
-
             if (in_array("flag", $params))
                 $item['flag'] = trim(pq($element)->find("h1.title")->find("span.flag")->text());
 
-            if (in_array("content", $params))
-                $item['content'] = trim(pq($element)->find("div.content")->text());
-
+            if (in_array("score", $params)) {
+                $item['score'] = pq($element)->find("div.infopanel span.score")->text();
+                $item['score_text'] = pq($element)->find("div.infopanel span.score")->attr("title");
+                $item['favs_count'] = pq($element)->find("div.infopanel div.favs_count")->text();
+            }
+            if (in_array("author", $params)) {
+                $item['author'] = pq($element)->find("div.infopanel div.author a:first")->text();
+            }
             if (in_array("hubs", $params)) {
                 $item['hubs'] = $this->_get_hubs($element);
             };
             if (in_array("tags", $params)) {
                 $item['tags'] = $this->_get_tags($element);
             };
+            if (in_array("content", $params))
+                $item['content'] = trim(pq($element)->find("div.content")->text());
             $list[] = $item;
         }
 
