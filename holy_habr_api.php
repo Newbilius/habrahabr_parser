@@ -137,9 +137,8 @@ class HolyHabrAPI {
         $this->change_page("http://habrahabr.ru/post/{$id}/");
         $out = array();
         $post = $this->html->find("div.post");
-        $out['caption'] = trim(pq($post->find("h1.title"))->text());
         if (in_array("caption", $params)) {
-            $out['caption'] = $this->_get_hubs($item);
+        $out['caption'] = trim(pq($post->find("h1.title"))->text());
         }
 
         if (in_array("hubs", $params)) {
