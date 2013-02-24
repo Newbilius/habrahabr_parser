@@ -44,9 +44,12 @@ class HolyHabrAPI {
             $f_name = explode(" ", $f_name);
             $f_name = $f_name[0];
 
-
-            $img_array[$new_name] = $f_name;
-            $text = str_replace($f_name, $new_name, $text);
+            if ($f_name) {
+                if (strpos($f_name, "</code") === FALSE) { //@fix костыль
+                    $img_array[$new_name] = $f_name;
+                    $text = str_replace($f_name, $new_name, $text);
+                };
+            };
         }
         $full_result['files'] = $img_array;
         $full_result['text'] = $text;
