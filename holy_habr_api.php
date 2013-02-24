@@ -36,6 +36,10 @@ class HolyHabrAPI {
             $f_name=str_replace(Array("'",'"'), "", $_img);
             $ext=end(explode(".",$f_name));
             $new_name=$img_name.$cnt.".".$ext;
+            $new_name=explode(" ",$new_name);
+            $new_name=$new_name[0];
+            $f_name=explode(" ",$f_name);
+            $f_name=$f_name[0];
             $img_array[$new_name]=  $f_name;
             $text=  str_replace($f_name, $new_name, $text);
         }
