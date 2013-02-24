@@ -19,7 +19,7 @@ class HolyHabrAPI {
     protected $last_url = "";
 
     public function __construct() {
-
+        
     }
 
     /**
@@ -30,24 +30,29 @@ class HolyHabrAPI {
      * @return array массив с двумя ключами:<br><b>text</b> - туда кладется текст с замененными ссылками на картинки
      * <br><b>files</b> - массив картинок
      */
-    public static function prepare_content_for_download($text,$img_name="tmp_"){
+    public static function prepare_content_for_download($text, $img_name = "tmp_") {
         preg_match_all('/\<(.*)img(.*)src(.*)=(.*)\>/isU', $text, $result);
-        foreach ($result[4] as $cnt=>$_img){
-            $f_name=str_replace(Array("'",'"'), "", $_img);
-            $ext=end(explode(".",$f_name));
-            $new_name=$img_name.$cnt.".".$ext;
-            $new_name=explode(" ",$new_name);
-            $new_name=$new_name[0];
-            $f_name=explode(" ",$f_name);
-            $f_name=$f_name[0];
-            $img_array[$new_name]=  $f_name;
-            $text=  str_replace($f_name, $new_name, $text);
+        foreach ($result[4] as $cnt => $_img) {
+            $f_name = str_replace(Array("'", '"'), "", $_img);
+            $ext = end(explode(".", $f_name));
+
+            $cnt = str_replace("/", "_", $cnt);
+            $ext = str_replace("/", "_", $ext);
+            $new_name = $img_name . $cnt . "." . $ext;
+            $new_name = explode(" ", $new_name);
+            $new_name = $new_name[0];
+            $f_name = explode(" ", $f_name);
+            $f_name = $f_name[0];
+
+
+            $img_array[$new_name] = $f_name;
+            $text = str_replace($f_name, $new_name, $text);
         }
-        $full_result['files']=$img_array;
-        $full_result['text']=$text;
+        $full_result['files'] = $img_array;
+        $full_result['text'] = $text;
         return $full_result;
     }
-    
+
     protected function _get_inner_comments($data, $params) {
         $out = array();
         foreach ($data->children("div.comment_item")as $element) {
@@ -100,7 +105,7 @@ class HolyHabrAPI {
         $hubs_src = pq($element)->find("div.hubs")->find("a.hub");
         foreach ($hubs_src as $_hub) {
             $hubs[] = array(
-                "url"  => pq($_hub)->attr("href"),
+                "url" => pq($_hub)->attr("href"),
                 "name" => pq($_hub)->text(),
             );
         }
@@ -111,7 +116,7 @@ class HolyHabrAPI {
         $hubs_src = pq($element)->find("div.hubs")->find("a.hub");
         foreach ($hubs_src as $_hub) {
             $hubs[] = array(
-                "url"  => pq($_hub)->attr("href"),
+                "url" => pq($_hub)->attr("href"),
                 "name" => pq($_hub)->text(),
             );
         }
@@ -176,17 +181,17 @@ class HolyHabrAPI {
         $this->html->find("div.buttons")->remove();
     }
 
-    public function get_user($uid){
+    public function get_user($uid) {
         $this->change_page("http://habrahabr.ru/users/{$uid}/");
-        $out=Array("uid"=>$uid);
+        $out = Array("uid" => $uid);
 
-        $out['name']=trim(pq($this->html->find("div.fullname"))->text());
-        $out['karma']=trim(pq($this->html->find("div.karma div.score div.num"))->text());
-        $out['karma_text']=trim(pq($this->html->find("div.karma div.votes"))->text());
-        $out['rating']=trim(pq($this->html->find("div.rating div.num"))->text());
-        $out['birthday']=trim(pq($this->html->find("dd.bday"))->text());
-        $out['summary']=trim(pq($this->html->find("dd.summary"))->html());
-        $out['reg_date']=trim(pq($this->html->find("dd.grey"))->html());
+        $out['name'] = trim(pq($this->html->find("div.fullname"))->text());
+        $out['karma'] = trim(pq($this->html->find("div.karma div.score div.num"))->text());
+        $out['karma_text'] = trim(pq($this->html->find("div.karma div.votes"))->text());
+        $out['rating'] = trim(pq($this->html->find("div.rating div.num"))->text());
+        $out['birthday'] = trim(pq($this->html->find("dd.bday"))->text());
+        $out['summary'] = trim(pq($this->html->find("dd.summary"))->html());
+        $out['reg_date'] = trim(pq($this->html->find("dd.grey"))->html());
 
         return $out;
     }
